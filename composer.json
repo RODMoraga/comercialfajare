@@ -1,0 +1,21 @@
+{
+    "name": "app/fajare",
+    "description": "Control de Ventas y Cuentas Corrientes",
+    "version": "1.0.1",
+    "autoload": {
+        "psr-4": {
+            "App\\Fajare\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Rodrigo Moraga Garrido",
+            "email": "roro.moraga@gmail.com",
+            "homepage": "http://localhost:3000",
+            "role": "Admin"
+        }
+    ],
+    "require": {
+        "monolog/monolog": "^3.8"
+    }
+}
