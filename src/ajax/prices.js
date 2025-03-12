@@ -262,6 +262,25 @@ btnadd.addEventListener("click", (e) => {
     $("#listprices").hide()
     $("#panelfilters").hide()
     $("#btnadd").hide()
+
+    $("#complex-filter").val("0")
+    $("#complex-filter").selectpicker("refresh")
+    $("#product-filter").val("0")
+    $("#product-filter").selectpicker("refresh")
+})
+
+btncancel.addEventListener("click", (e) => {
+    $("#panelprice").hide()
+    $("#listprices").show()
+    $("#panelfilters").show()
+    $("#btnadd").show()
+
+    $("#details tbody tr").remove()
+    
+    $("#complex-filter").val("0")
+    $("#complex-filter").selectpicker("refresh")
+    $("#product-filter").val("0")
+    $("#product-filter").selectpicker("refresh")
 })
 
 complex.addEventListener("change", async (e) => {
@@ -331,13 +350,39 @@ form.addEventListener("submit", async (e) => {
         })
 
         if (!response.ok) {
-            alert(response.statusText + " (1)")
+            Swal.fire({
+                title: `Error Server: ${response.status}`,
+                text: response.statusText,
+                icon: "warning"
+            })
         } else {
             const result = await response.json()
-            console.log(result)
+
+            // Mostrar mensaje
+            toastr["success"](result.message, result.title)
+
+            // Actualizar la tabla
+            table.ajax.reload();
+
+            // Visualizar lista y ocultar formulario.
+            $("#panelprice").hide()
+            $("#listprices").show()
+            $("#panelfilters").show()
+            $("#btnadd").show()
+
+            $("#details tbody tr").remove()
+            
+            $("#complex-filter").val("0")
+            $("#complex-filter").selectpicker("refresh")
+            $("#product-filter").val("0")
+            $("#product-filter").selectpicker("refresh")
         }
     } catch (error) {
-        alert(error.message + " (2)")
+        Swal.fire({
+            title: "Error de Respuesta",
+            text: error.message,
+            icon: "warning"
+        })
     }
 })
 

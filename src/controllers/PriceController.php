@@ -87,19 +87,11 @@ class PriceController {
                 if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $data = array();
 
-                    foreach ($_POST as $key) {
-                        $data[] = explode(",", $key[0]);
-                    }
+                    parse_str(file_get_contents("php://input"), $data);
 
-                    //$response = Price::save($data);
+                    $response = Price::save($data);
 
-                    /*foreach ($response as $key) {
-                        $log->info($key[0]);
-                    }*/
-
-                    $log->info("Información enviada por json");
-
-                    echo json_encode($data, JSON_ERROR_NONE | JSON_ERROR_UTF8);
+                    echo json_encode($response);
                 }
                 break;
         }

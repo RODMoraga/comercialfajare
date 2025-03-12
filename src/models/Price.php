@@ -257,59 +257,129 @@ class Price {
     }
 
     public static function save(array $data): array {
-        $insert = array();
-        $update = array();
-
         $log = new Logger("log_models");
         $log->pushHandler(new StreamHandler("src/logs/log_model.log"), Level::Info);
-        $log->info("Id. del cliente: {$data["customerid"][0]}");
 
-        $headerpriceid = self::getID((int)$data["customerid"][0]);
+        $log->info("Metodo save() del package Price()");
+        $log->info(json_encode($data));
         
-        // Si existe la cabecera de la lista de precios
-        if ($headerpriceid) {
-            // Solamente actualizamos la fecha de modificación y usuario
-            /*$query = "UPDATE `headerprice` SET `updateof`=?, `userid`=? WHERE `headerpriceid`=?;";
-            $connect = Database::connect();
-            $statement = $connect->prepare($query);
-            $statement->bindParam(1, date("Y-m-d"), PDO::PARAM_STR);
-            $statement->bindParam(2, $_SESSION["access"][3], PDO::PARAM_INT);
-            $statement->bindParam(3, $headerpriceid, PDO::PARAM_INT);
-            $statement->exeute();*/
+        $insert = array();
+        $update = array();
+        $userid = (int)$_SESSION["access"][3];
+        $prices = array();
+        $details = array();
+        $product = array();
+        $customer = array();
+        $discount = array();
 
-            // Actualizar o insertar el detalle de las lista de precios
-            $i = 0;
-
-            while($i < count($data["prices"])) {
-                $detailpriceid = (int)$data["details"][$i];
-                $productid     = (int)$data["product"][$i];
-                $price         = doubleval($data["prices"][$i]);
-
-                if ($detailpriceid) {
-                    $update[] = array("UPDATE `detailprice` SET `price`={$price}, WHERE `detailpriceid`={$detailpriceid};");
-                } else {
-                    $insert[] = array("INSERT INTO `detailprice` VALUES(NULL, {$headerpriceid}, {$productid}, {price}, 0, 0, 0, 0);");
-                }
-            }
-        } else {
-            $clientid = (int)$data["customerid"][0];
-            $userid = (int)$_SESSION["access"][3];
-            $i = 0;
-
-            $insert[] = array("INSERT INTO `headerprice` VALUES(NULL, {$clientid}, CURDATE(), CURDATE(), {$userid}, 1);");
-
-            while ($i < count($data["details"])) {
-                $detailpriceid = (int)$data["details"][$i];
-                $productid     = (int)$data["product"][$i];
-                $price         = doubleval($data["prices"][$i]);
-
-                $insert[] = array(
-                    "INSERT INTO `detailprice` VALUES(NULL, LAST_INSERT_ID(), {$productid}, {$price}, 0, 0, 0, 0);"
-                );
+        // Prepara los datos
+        foreach ($data as $key => $value) {
+            switch ($key) {
+                case "customerid":
+                    $customer[$key] = explode(",", $value);
+                    break;
+                case "product":
+                    $product[$key] = explode(",", $value);
+                    break;
+                case "details":
+                    $details[$key] = explode(",", $value);
+                    break;
+                case "prices":
+                    $prices[$key] = explode(",", $value);
+                    break;
+                default:
+                    $discount[$key] = explode(",", $value);
+                    break;
             }
         }
 
-        return array_merge($insert);
+        $log->info("Verificando el Id. del cliente {$data["customerid"][0]}");
+        $log->info(json_encode($customer));
+        $log->info(json_encode($product));
+        $log->info(json_encode($details));
+        $log->info(json_encode($prices));
+        $log->info(json_encode($discount));
+
+        $headerpriceid = self::getID((int)$data["customerid"][0]);
+        
+        $log->info("Obteniendo el Id. de la lista de precios: {$headerpriceid}");
+        $log->info("Tamaño de la matriz: " . (string)count($details["details"]));
+
+
+        // Si existe un precio actualizamos
+        if ($headerpriceid > 0) {
+            $update[] = array("UPDATE `headerprice` SET `updateof`=CURDATE(), `userid`={$userid} WHERE `headerpriceid`={$headerpriceid};");
+
+            $i = 0;
+
+            while ($i < count($details["details"])) {
+                $priceid = (int)$details["details"][$i];
+                $article = (int)$product["product"][$i];
+                $price   = (int)$prices["prices"][$i];
+                $dcto1   = (int)$discount["dcto1"][$i];
+
+                if ($priceid === 0) {
+                    $insert[] = array("INSERT INTO `detailprice` VALUES(NULL, {$headerpriceid}, {$article}, {$price}, {$dcto1}, 0, 0, 0);");
+                } else {
+                    $update[] = array("UPDATE `detailprice` SET `price`={$price}, `discount1`={$dcto1} WHERE `detailpriceid`={$priceid} AND `headerpriceid`={$headerpriceid} AND `productid`={$article};");
+                }
+
+                $i++;
+            }
+        } else {
+            $client = (int)$customer["customerid"][0];
+            $insert[] = array("INSERT INTO `headerprice` VALUES(NULL, {$client}, CURDATE(), CURDATE(), {$userid}, 1);");
+
+            $i = 0;
+            $max = count($details["details"]) - 1;
+            $query_values = "";
+
+            while ($i < count($details["details"])) {
+                $priceid = (int)$details["details"][$i];
+                $article = (int)$product["product"][$i];
+                $price   = (int)$prices["prices"][$i];
+                $dcto1   = (int)$discount["dcto1"][$i];
+                
+                $query_values .= "(NULL, LAST_INSERT_ID(), {$article}, {$price}, {$dcto1}, 0, 0, 0)" . ($i === $max ? "": ",");
+                $i++;
+            }
+
+            $insert[] = array("INSERT INTO `detailprice` VALUES{$query_values};");
+        }
+
+        $result = array_merge($insert, $update);
+        
+        $log->info("Vamos a comenzar a revisar las queries para ejecutarlas");
+        $log->info("Tamaño de la matriz de las queries: {$result}");
+
+        foreach ($result as $key) {
+            $log->info($key[0]);
+            self::executeQuery($key[0]);
+        }
+
+        $log->info("Llegamos al final.");
+
+        return [
+            "message" => "Los datos se agregaron exitosamente.!",
+            "title" => "Guardando precios",
+            "status" => "success"
+        ];
+    }
+
+    private static function executeQuery(string $query): void {
+        $log = new Logger("log_models");
+        $log->pushHandler(new StreamHandler("src/logs/log_model.log"), Level::Info);
+
+        try {
+            $connect = Database::connect();
+            $statement = $connect->prepare($query);
+            $statement->execute();
+
+            $log->info("El script {$query} se ejecutó corectamente.");
+        } catch (PDOException $e) {
+            $log->error("Error al ejecutar el script {$query}.");
+            $log->error("{$e->getMessage()}");
+        }
     }
 
     private static function getID(int $id): int {

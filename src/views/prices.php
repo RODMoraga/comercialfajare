@@ -93,12 +93,12 @@ if (!isset($_SESSION["access"][0])) {
                                                 <input type="text" class="form-control text-bold" name="phone1" id="phone1" disabled />
                                             </div>
                                         </div>
-                                        <div class="row">
+                                        <!--<div class="row">
                                             <div class="form-group col-lg-12 col-md-12 col-sm-12 col-sx-12">
                                                 <button type="button" class="btn btn-success" data-toggle="modal" data-target="#formModal" id="btnaddproduct"><i class="fa fa-plus"></i> Agregar Producto</button>
                                                 <button type="button" class="btn btn-warning" id="btnremoveitemtable"><i class="fa fa-trash-o"></i> Eliminar Todos</button>
                                             </div>
-                                        </div>
+                                        </div>-->
                                         <!-- Tabla detalles productos -->
                                         <div class="row">
                                             <div class="form-group col-lg-12 col-md-12 col-sm-12 col-xs-12">
