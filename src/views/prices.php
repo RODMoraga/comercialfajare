@@ -2,7 +2,8 @@
 
 ob_start();
 
-session_start();
+if (session_status() === PHP_SESSION_NONE)
+    session_start();
 
 if (!isset($_SESSION["access"][0])) {
     session_unset();
@@ -17,6 +18,21 @@ if (!isset($_SESSION["access"][0])) {
     <?php include "src/includes/head.php" ?>
     <!-- Toastr -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" integrity="sha512-vKMx8UnXk60zUwyUnUPM3HbQo8QfmNx7+ltw8Pm5zLusl1XIfwcxo8DbWCqMGKaWeNxWA8yrx5v3SaVpMvR3CA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        #details thead tr th,
+        #details tbody tr td {
+            font-weight: 800;
+        }
+
+        #details thead tr th:nth-child(3),
+        #details tbody tr td:nth-child(3),
+        #details thead tr th:nth-child(5),
+        #details tbody tr td:nth-child(5),
+        #details thead tr th:nth-child(6),
+        #details tbody tr td:nth-child(6) {
+            width: 15%;
+        }
+    </style>
     <body class="hold-transition skin-blue sidebar-mini">
         <div class="wrapper">
             <?php include "src/includes/header.php";?>
@@ -49,7 +65,7 @@ if (!isset($_SESSION["access"][0])) {
                                             <select class="form-control selectpicker" title="Seleccione uno o más productos" data-live-search="true" name="product-filter" id="product-filter" multiple data-max-options="5" data-size="7"></select>
                                         </div>
                                         <div class="form-group col-lg-4 col-md-4 col-sm-4 col-xs-12">
-                                            <button type="button" class="btn btn-info btn-sm"><i class="fa fa-search-plus"></i>&nbsp;&nbsp;Refrescar Lista</button>
+                                            <button type="button" class="btn btn-info btn-sm" id="btnrefresh"><i class="fa fa-search-plus"></i>&nbsp;&nbsp;Refrescar Lista</button>
                                         </div>
                                     </div>
                                 </div>
@@ -102,12 +118,12 @@ if (!isset($_SESSION["access"][0])) {
                                         <!-- Tabla detalles productos -->
                                         <div class="row">
                                             <div class="form-group col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                <div style="overflow-y: scroll;height: 40rem;">
+                                                <div style="border-bottom: 2px solid green; padding: 0.175rem; overflow-y: scroll;height: 29.775rem;">
                                                     <table class="table table-bordered" id="details">
                                                         <thead class="bg-green-gradient">
                                                             <tr>
-                                                                <th>Id. Detalle</th>
-                                                                <th>Id. Producto</th>
+                                                                <th class="hidden">Id. Detalle</th>
+                                                                <th class="hidden">Id. Producto</th>
                                                                 <th>Código Producto</th>
                                                                 <th>Descripción Producto</th>
                                                                 <th>Precio</th>
@@ -119,11 +135,19 @@ if (!isset($_SESSION["access"][0])) {
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- Fin Tabla detalles productos -->
-                                        <div class="form-group col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                            <button class="btn btn-primary" type="submit" id="btnsave"><i class="fa fa-save"></i> Guardar</button>
-                                            <button class="btn btn-danger" type="button" id="btncancel"><i class="fa fa-arrow-circle-left"></i> Cancelar</button>
+                                        <div class="row">
+                                            <div class="form-group col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                                                <label for="filter-text-table">Filtrar Contenido:</label>
+                                                <input type="text" class="form-control" name="filter-text-table" id="filter-text-table" maxlength="25" placeholder="Ingrese contenido a buscar" />
+                                            </div>
                                         </div>
+                                        <!-- Fin Tabla detalles productos -->
+                                         <div class="row">
+                                             <div class="form-group col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                 <button class="btn btn-primary" type="submit" id="btnsave"><i class="fa fa-save"></i> Guardar</button>
+                                                 <button class="btn btn-danger" type="button" id="btncancel"><i class="fa fa-arrow-circle-left"></i> Cancelar</button>
+                                             </div>
+                                         </div>
                                     </form>
                                 </div>
                                 <!-- Modal -->

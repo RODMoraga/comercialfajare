@@ -7,7 +7,7 @@
         <!-- Bootstrap 3.3.5 -->
         <link rel="stylesheet" href="src/public/css/bootstrap.min.css">
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css">
-        <!-- Font Awesome -->
+        <!-- Font Awesome 4.4.0 -->
         <link rel="stylesheet" href="src/public/css/font-awesome.css">
         <!-- Theme style -->
         <link rel="stylesheet" href="src/public/css/AdminLTE.min.css">

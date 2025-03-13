@@ -1,13 +1,55 @@
 const btnadd = document.querySelector("#btnadd")
 const complex = document.querySelector("#complex")
 const btncancel = document.querySelector("#btncancel")
+const btnrefresh = document.querySelector("#btnrefresh")
 const form = document.querySelector("form")
 
 let table;
 
+const deleteBy = async (header, detail, product) => {
+
+    try {
+        const response = await fetch(`/price/delete?header=${header}&detail=${detail}&product=${product}`, {
+            method: "DELETE"
+        })
+
+        if (!response.ok) {
+            Swal.fire({
+                title: `Error: ${response.status}`,
+                text: response.statusText,
+                icon: "warning"
+            })
+        } else {
+            const result = await response.json()
+
+            if (result.status === "error") {
+                Swal.fire({
+                    title: result.title,
+                    text: result.message,
+                    icon: "error"
+                })
+
+            } else {
+                toastr["success"](result.message, result.title)
+                table.ajax.reload();
+            }
+        }
+    } catch (error) {
+        Swal.fire({
+            title: "¡Error!",
+            text: error.message,
+            icon: "error"
+        })
+    }
+
+}
+
 const findAll = async () => {
+    const customer = $("#complex-filter").val()
+    const products = $("#product-filter").val()
+
     table = $("#tblprice").dataTable({
-        "lengthMenu": [5, 10, 25, 75, 100],     // Mostramos el menú de registros a revisar
+        "lengthMenu": [10, 25, 75, 100],        // Mostramos el menú de registros a revisar
         "aProcessing": true,                    // Activamos el procesamiento del datatables
         "aServerSide": true,                    // Paginación y filtrado realizados por el servidor
         dom: '<Bl<f>rtip>',                     // Definimos los elementos del control de tabla
@@ -22,11 +64,12 @@ const findAll = async () => {
             //{ "targets":[5, 6], "className": "dt-right" },
             //{ "targets":[0], "width": "7%" },
             //{ "targets":[2], "width": "23%" },
-            { "targets":[0], "orderable": false }
+            { "targets":[0, 1, 6], "orderable": false }
         ],
         "ajax": {
-            url: "/price/findall",
+            url: `/price/findall?customer=${customer}&products=${products}`,
             type: "GET",
+            //data: { customer: customer, products: products },
             dataType: "json",
             error: function (e) {
                 console.log(e.responseText);
@@ -235,8 +278,8 @@ const loadPriceCustomer = async (id) => {
             Object.entries(result).forEach(([index, value]) => {
                 html += `
                     <tr>
-                        <td>${value[0]}</td>
-                        <td>${value[1]}</td>
+                        <td class="hidden">${value[0]}</td>
+                        <td class="hidden">${value[1]}</td>
                         <td>${value[2]}</td>
                         <td>${value[3]}</td>
                         <td><input type="number" class="form-control input-group-sm text-right" name="price[]" value="${value[4]}" /></td>
@@ -263,10 +306,15 @@ btnadd.addEventListener("click", (e) => {
     $("#panelfilters").hide()
     $("#btnadd").hide()
 
-    $("#complex-filter").val("0")
-    $("#complex-filter").selectpicker("refresh")
-    $("#product-filter").val("0")
-    $("#product-filter").selectpicker("refresh")
+    $("#complex").val("0")
+    $("#complex").selectpicker("refresh")
+    $("#customername").val("0")
+    $("#customername").selectpicker("refresh")
+    $("#filter-text-table").val("")
+    $("#street").val("")
+    $("#phone1").val("")
+
+    $("#details tbody tr").remove()
 })
 
 btncancel.addEventListener("click", (e) => {
@@ -281,6 +329,8 @@ btncancel.addEventListener("click", (e) => {
     $("#complex-filter").selectpicker("refresh")
     $("#product-filter").val("0")
     $("#product-filter").selectpicker("refresh")
+
+    findAll()
 })
 
 complex.addEventListener("change", async (e) => {
@@ -294,6 +344,10 @@ complex.addEventListener("change", async (e) => {
     }, 0)
 })
 
+btnrefresh.addEventListener("click", async () => {
+    findAll()
+})
+
 form.addEventListener("submit", async (e) => {
     e.preventDefault()
 
@@ -301,6 +355,8 @@ form.addEventListener("submit", async (e) => {
     const details = []
     const prices  = []
     const dcto1   = []
+
+    let addition = 0;
 
     for (const [key, value] of new FormData(form).entries()) {
         switch (key) {
@@ -312,8 +368,6 @@ form.addEventListener("submit", async (e) => {
                 break
         }
     }
-
-    const params = new URLSearchParams()
 
     $("#details tbody tr").each(function(i) {
         $(this).children("td:eq(0)").each(function() {
@@ -333,6 +387,28 @@ form.addEventListener("submit", async (e) => {
             }
         })
     })
+
+    $("#details tbody tr").each(function() {
+        $(this).children("td:eq(4)").each(function() {
+            const val_input = $(this).find("input[type=number]")
+
+            if (!isNaN(val_input.val())) {
+                addition += Number(val_input.val())
+            }
+        })
+    })
+
+    if (addition === 0) {
+        Swal.fire({
+            title: "Precios",
+            html: `<p style="font-size: 1.3rem;">No se han especificados los precios, para guardar.</p>`,
+            icon: "error"
+        })
+
+        return
+    }
+
+    const params = new URLSearchParams()
 
     params.append("customerid", $("#customername").val())
     params.append("product", product)
@@ -414,4 +490,34 @@ window.addEventListener("DOMContentLoaded", async (e) => {
     findAllProducts()
 
     $("#panelprice").hide()
+
+    $(document).on("click", ".btn-delete-price", function(e) {
+        const detail  = $(this).attr("data-table-detail");
+        const header  = $(this).attr("data-table-header");
+        const product = $(this).attr("data-table-product");
+        const names   = $(this).attr("data-table-names");
+        const list    = names.split(" - ")
+
+        Swal.fire({
+            title: `${list[0]}`,
+            html: `¿Estas seguro de eliminar el producto: <b>${list[1]}</b> de la base de datos?`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si, Eliminarlo!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                deleteBy(header, detail, product)
+            }
+        })
+    })
+
+    $("#filter-text-table").on("keyup", function() {
+        const value = $(this).val().toLowerCase();
+
+        $("#details > tbody > tr").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+    });
 })

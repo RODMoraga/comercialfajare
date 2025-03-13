@@ -17,6 +17,25 @@ class PriceController {
         $log->pushHandler(new StreamHandler("src/logs/log_controller.log"), Level::Info);
 
         switch ($_SERVER["PATH_INFO"]) {
+            case "/price/delete":
+                if ($_SERVER["REQUEST_METHOD"] === "DELETE") {
+                    if (isset($_GET["header"]) && isset($_GET["detail"]) && isset($_GET["product"])) {
+                        $header = (int)$_GET["header"];
+                        $detail = (int)$_GET["detail"];
+                        $product = (int)$_GET["product"];
+
+                        $log->info("Controller PriceControlller - /price/delete - Terminando");
+
+                        $response = Price::delete($header, $detail, $product);
+
+                        if (is_array($response)) {
+                            echo json_encode($response, JSON_ERROR_NONE | JSON_ERROR_UTF8);
+                        }
+
+                        $log->info("Controller PriceControlller - /price/delete - Terminando");
+                    }
+                }
+                break;
             case "/price/find/location":
                 if ($_SERVER["REQUEST_METHOD"] === "GET") {
                     if (isset($_GET["id"])) {
@@ -31,12 +50,18 @@ class PriceController {
                 break;
             case "/price/findall":
                 if ($_SERVER["REQUEST_METHOD"] === "GET") {
+                    $customer = array();
+                    $products = array();
+
+                    $log->info("Controller PriceControlller - /price/findall");
+
                     $respose = Price::findAll();
 
                     if (is_array($respose)) {
                         echo json_encode($respose, JSON_ERROR_NONE | JSON_ERROR_UTF8);
                     }
 
+                    $log->info("Controller PriceControlller - /price/findall - Terminado");
                 }
 
                 break;
@@ -88,6 +113,8 @@ class PriceController {
                     $data = array();
 
                     parse_str(file_get_contents("php://input"), $data);
+
+                    $log->info("Controller PriceControlller - /price/save");
 
                     $response = Price::save($data);
 

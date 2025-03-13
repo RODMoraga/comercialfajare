@@ -11,17 +11,51 @@ use Monolog\Logger;
 use PDO;
 use PDOException;
 
-session_start();
+if (session_status() === PHP_SESSION_NONE)
+    session_start();
 
 class Price {
+    
+    public static function delete(int $hprice, int $dprice, int $product): array {
 
+        try {
+            $connect = Database::connect();
+            $statement = $connect->prepare(
+                "DELETE FROM `detailprice`
+                 WHERE `detailpriceid`=? AND `headerpriceid`=? AND `productid`=?;"
+            );
+            $statement->bindParam(1, $dprice, PDO::PARAM_INT);
+            $statement->bindParam(2, $hprice, PDO::PARAM_INT);
+            $statement->bindParam(3, $product, PDO::PARAM_INT);
+            $statement->execute();
+
+            return [
+                "message" => "El registro se eliminó satisfactoriamente.",
+                "title" => "Eliminado",
+                "status" => "success"
+            ];
+        } catch (PDOException $e) {
+            return [
+                "message" => $e->getMessage(),
+                "title" => "Eliminando...",
+                "status" => "success"
+            ];
+        }
+
+    }
     /**
      * @return array
      */
     public static function findAll(): array {
+        $log = new Logger("log_models");
+        $log->pushHandler(new StreamHandler("src/logs/log_model.log"), Level::Info);
+        $log->info("Package Price - Método findAll()");
 
         try {
             $query = "SELECT T3.`customerid`
+                , T2.`detailpriceid`
+                , T2.`headerpriceid`
+                , T2.`productid`
                 , T3.`customername`
                 , T3.`complex`
                 , T4.`productcode`
@@ -34,14 +68,53 @@ class Price {
             INNER JOIN `products`    T4 ON T2.`productid`=T4.`productid`
             ";
 
+            if (isset($_SERVER["QUERY_STRING"])) {
+                $log->info("Query_String    : {$_SERVER["QUERY_STRING"]}");
+                $params[] = explode("&", $_SERVER["QUERY_STRING"])[0];
+                $params[] = explode("&", $_SERVER["QUERY_STRING"])[1];
+
+                $params[0] = str_replace("customer=", "", $params["0"]);
+                $params[1] = str_replace("products=", "", $params["1"]);
+
+                $log->info("Primer Parámetro : {$params[0]}");
+                $log->info("Segundo Parámetro: {$params[1]}");
+
+                $query_where = "";
+
+                if ($params[0] !== "") {
+                    $query_where = " WHERE T1.`customerid` IN({$params[0]})";
+                }
+                
+                if ($params[1] !== "") {
+                    $query_where .= (
+                        $query_where !== "" ?
+                        " AND T2.`productid` IN($params[1])":
+                        " WHERE T2.`productid` IN($params[1])"
+                    );
+                }
+
+                $log->info("Clausula WHERE: {$query_where}");
+            }
+
+            $query .= $query_where;
+
             $connect = Database::connect();
             $statement = $connect->prepare($query);
             $statement->execute();
             $data = array();
 
             foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $key) {
+                $dprice = array();
+
+                $dprice[] = $key["detailpriceid"];
+                $dprice[] = $key["headerpriceid"];
+                $dprice[] = $key["productid"];
+                $dprice[] = $key["complex"] . " - " . $key["productname"];
+
+                $button = "<button type=\"button\" class=\"btn btn-danger btn-delete-price\" data-table-detail=\"{$dprice[0]}\" data-table-header=\"{$dprice[1]}\" data-table-product=\"{$dprice[2]}\" data-table-names=\"{$dprice[3]}\"><i class=\"fa fa-trash\" aria-hidden=\"true\"></i>&nbsp;Eliminar</button>";
+
                 $data[] = array(
-                    "0" => "",
+                    "0" => $button,
                     "1" => $key["customername"],
                     "2" => $key["complex"],
                     "3" => $key["productcode"],
@@ -57,6 +130,8 @@ class Price {
                 "iTotalDisplayRecords" => count($data),     // Enviamos el total registros a visualizar
                 "aaData" => $data
             );
+
+            $log->info("Package Price - Método findAll() - Terminado");
 
             return $result;
 
@@ -293,18 +368,17 @@ class Price {
             }
         }
 
-        $log->info("Verificando el Id. del cliente {$data["customerid"][0]}");
+        $log->info("Verificando el Id. del cliente {$customer["customerid"][0]}");
         $log->info(json_encode($customer));
         $log->info(json_encode($product));
         $log->info(json_encode($details));
         $log->info(json_encode($prices));
         $log->info(json_encode($discount));
 
-        $headerpriceid = self::getID((int)$data["customerid"][0]);
+        $headerpriceid = self::getID((int)$customer["customerid"][0]);
         
         $log->info("Obteniendo el Id. de la lista de precios: {$headerpriceid}");
         $log->info("Tamaño de la matriz: " . (string)count($details["details"]));
-
 
         // Si existe un precio actualizamos
         if ($headerpriceid > 0) {
@@ -329,7 +403,7 @@ class Price {
         } else {
             $client = (int)$customer["customerid"][0];
             $insert[] = array("INSERT INTO `headerprice` VALUES(NULL, {$client}, CURDATE(), CURDATE(), {$userid}, 1);");
-
+            
             $i = 0;
             $max = count($details["details"]) - 1;
             $query_values = "";
@@ -352,10 +426,19 @@ class Price {
         $log->info("Vamos a comenzar a revisar las queries para ejecutarlas");
         $log->info("Tamaño de la matriz de las queries: {$result}");
 
+        $multiple_query = "";
+
         foreach ($result as $key) {
-            $log->info($key[0]);
-            self::executeQuery($key[0]);
+            if ($headerpriceid > 0) {
+                $log->info($key[0]);
+                self::executeQuery($key[0]);
+            } else {
+                $multiple_query .= $key[0];
+            }
         }
+
+        if (strlen($multiple_query))
+            self::executeQuery($multiple_query);
 
         $log->info("Llegamos al final.");
 
@@ -383,12 +466,20 @@ class Price {
     }
 
     private static function getID(int $id): int {
+        $log = new Logger("log_models");
+        $log->pushHandler(new StreamHandler("src/logs/log_model.log"), Level::Info);
+        $log->info("Metodo getID()");
+
         try {
             $connect = Database::connect();
             $statement = $connect->prepare("SELECT * FROM `headerprice` WHERE `customerid`=?;");
             $statement->bindParam(1, $id, PDO::PARAM_INT);
             $statement->execute();
             $row = $statement->fetchColumn(0);
+            $nrow = $statement->rowCount();
+
+            $log->info("Valor del Id. de cabecera es: {$row}");
+            $log->info("Números de filas retornadas : {$nrow}");
 
             return $statement->rowCount() ? (int)$row: -1;
 

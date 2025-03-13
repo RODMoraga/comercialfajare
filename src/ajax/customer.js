@@ -62,7 +62,7 @@ const findOne = async (id) => {
 
 const findAll = async () => {
     table = $("#tblcustomer").dataTable({
-        "lengthMenu": [5, 10, 25, 75, 100],     // Mostramos el menú de registros a revisar
+        "lengthMenu": [10, 25, 75, 100],        // Mostramos el menú de registros a revisar
         "aProcessing": true,                    // Activamos el procesamiento del datatables
         "aServerSide": true,                    // Paginación y filtrado realizados por el servidor
         dom: '<Bl<f>rtip>',                     // Definimos los elementos del control de tabla
@@ -76,7 +76,7 @@ const findAll = async () => {
             //{ "targets":[2, 3], "className": "dt-right" },
             { "targets":[0], "width": "7%" },
             { "targets":[2, 3], "width": "23%" },
-            { "targets":[0, 1, 10], "orderable": false }
+            { "targets":[0, 1, 2, 8, 9, 10], "orderable": false }
         ],
         "ajax": {
             url: "/customer/findall",
@@ -98,7 +98,7 @@ const findAll = async () => {
         },
         "bDestroy": true,
         "iDisplayLength": 10,   // Paginación
-        "order": [[2, "asc"]]   // Ordenar (columna, orden)
+        "order": [[3, "asc"]]   // Ordenar (columna, orden)
     }).DataTable();
 }
 
@@ -190,7 +190,6 @@ const findAllRegion = async () => {
 
 const isFieldsValid = () => {
     const fields = [
-        ($("#customername").val()).trim(),
         ($("#complex").val()).trim(),
         $("#paymentid").val(),
         $("#regionid").val(),

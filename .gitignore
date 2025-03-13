@@ -1,2 +1,3 @@
 # Variables de entornos
 .env
+*.log

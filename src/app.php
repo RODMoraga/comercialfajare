@@ -133,6 +133,11 @@ switch ($_SERVER["PATH_INFO"]) {
             PriceController::process();
         }
         break;
+    case "/price/delete":
+        if (isset($_SESSION["access"][0])) {
+            PriceController::process();
+        }
+        break;
     default:
         include "src/views/404.php";
         break;

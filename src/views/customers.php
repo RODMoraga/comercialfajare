@@ -2,7 +2,8 @@
 
 ob_start();
 
-session_start();
+if (session_status() === PHP_SESSION_NONE)
+    session_start();
 
 if (!isset($_SESSION["access"][0])) {
     $_SESSION = [];
@@ -49,7 +50,7 @@ if (!isset($_SESSION["access"][0])) {
                                                 <th>Acciones</th>
                                                 <th>Rut</th>
                                                 <th>Nombre Cliente</th>
-                                                <th>Nombre Complejo</th>
+                                                <th>Establecimiento</th>
                                                 <th>Ruta</th>
                                                 <th>Ciudad</th>
                                                 <th>Comuna</th>
