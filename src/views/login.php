@@ -26,11 +26,11 @@
                 <p class="login-box-msg text-bold">Ingrese sus datos de Acceso</p>
                 <form method="post" name="form">
                     <div class="form-group has-feedback">
-                        <input type="text" id="username" name="username" class="form-control" placeholder="Nombre Usuario">
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Nombre Usuario" autofocus />
                         <span class="fa fa-user form-control-feedback"></span>
                     </div>
                     <div class="form-group has-feedback">
-                        <input type="password" id="password" name="password" class="form-control" placeholder="Contraseña">
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Contraseña" />
                         <span class="fa fa-key form-control-feedback"></span>
                     </div>
                     <div class="row">

@@ -2,10 +2,12 @@
 
 use App\Fajare\controllers\CustomerController;
 use App\Fajare\controllers\LoginController;
+use App\Fajare\controllers\OrdernoteController;
 use App\Fajare\controllers\PriceController;
 use App\Fajare\controllers\ProductController;
 
-session_start();
+if (session_status() === PHP_SESSION_NONE)
+    session_start();
 
 switch ($_SERVER["PATH_INFO"]) {
     case "": case "/":
@@ -28,7 +30,9 @@ switch ($_SERVER["PATH_INFO"]) {
         break;
     case "/sessions":
         echo "<pre>";
-        var_dump($_SESSION);
+        //var_dump($_SESSION);
+        //["950","580","830","830"]
+        var_dump(["950","580","830","830"]);
         echo "</pre>";
         break;
     case "/customer/findall":
@@ -136,6 +140,46 @@ switch ($_SERVER["PATH_INFO"]) {
     case "/price/delete":
         if (isset($_SESSION["access"][0])) {
             PriceController::process();
+        }
+        break;
+    case "/notapedidos":
+        if (isset($_SESSION["access"][0])) {
+            include "src/views/ordernote.php";
+        }
+        break;
+    case "/ordernote/findall":
+        if (isset($_SESSION["access"][0])) {
+            OrdernoteController::process();
+        }
+        break;
+    case "/ordernote/findallcomplex":
+        if (isset($_SESSION["access"][0])) {
+            OrdernoteController::process();
+        }
+        break;
+    case "/ordernote/lastdocument":
+        if (isset($_SESSION["access"][0])) {
+            OrdernoteController::process();
+        }
+        break;
+    case "/ordernote/findonecustomer":
+        if (isset($_SESSION["access"][0])) {
+            OrdernoteController::process();
+        }
+        break;
+    case "/ordernote/getlistprice":
+        if (isset($_SESSION["access"][0])) {
+            OrdernoteController::process();
+        }
+        break;
+    case "/ordernote/save":
+        if (isset($_SESSION["access"][0])) {
+            OrdernoteController::process();
+        }
+        break;
+    case "/ordernote/generatefpdf":
+        if (isset($_SESSION["access"][0])) {
+            OrdernoteController::process();
         }
         break;
     default:
