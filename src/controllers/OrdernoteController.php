@@ -122,7 +122,89 @@ class OrdernoteController {
                 }
 
                 $log->info("Método printFPDF, url=/ordernote/generatefpdf - Terminado");
-                
+
+                break;
+
+            case "/ordernote/status":
+                $log->info("Método statusDocument(), url=/ordernote/status - Iniciado");
+
+                if ($_SERVER["REQUEST_METHOD"] === "GET") {
+                    if (isset($_GET["headerid"])) {
+                        $response = Ordernote::statusDocument((int)$_GET["headerid"]);
+
+                        if (is_array($response)) {
+                            echo json_encode($response, JSON_ERROR_NONE | JSON_ERROR_UTF8);
+                        }
+
+                    }
+                }
+
+                $log->info("Método statusDocument(), url=/ordernote/status - Terminado");
+
+                break;
+            case "/ordernote/findonedocument":
+                if ($_SERVER["REQUEST_METHOD"] === "GET") {
+                    if (isset($_GET["headerid"])) {
+                        $response = Ordernote::findOneDocument((int)$_GET["headerid"]);
+
+                        if (is_array($response)) {
+                            echo json_encode($response, JSON_ERROR_NONE | JSON_ERROR_UTF8);
+                        }
+                    }
+                }
+                break;
+            case "/ordernote/delete/item":
+                $log->info("Método deleteBy(), url=/ordernote/delete/item - Inicio");
+
+                if ($_SERVER["REQUEST_METHOD"] === "DELETE") {
+                    $log->info("Id. Cabecera  : " . $_GET["headerid"]);
+                    $log->info("Id's Detalle  : " . json_encode(array_map("intval", explode(",", $_GET["detailid"]))));
+                    $log->info("Id's Productos: " . json_encode(array_map("intval", explode(",", $_GET["params"]))));
+
+                    if (isset($_GET["headerid"]) && isset($_GET["detailid"]) && isset($_GET["params"])) {
+                        $headerid = (int)$_GET["headerid"];
+                        $detailid = array_map("intval", explode(",", $_GET["detailid"]));
+                        $params   = array_map("intval", explode(",", $_GET["params"]));
+
+                        if (is_array($detailid) && is_array($params)) {
+                            $response = Ordernote::deleteBy($headerid, $detailid, $params);
+                        } else {
+                            $response = [
+                                "message" => "Uno de los parámetros indicados no son correctos",
+                                "title" => "Eliminando",
+                                "status" => "error"
+                            ];
+                        }
+
+                        if (is_array($response)) {
+                            echo json_encode($response, JSON_ERROR_NONE | JSON_ERROR_UTF8);
+                        }
+                        
+                    }
+                }
+
+                $log->info("Método deleteBy(), url=/ordernote/delete/item - Terminado");
+
+                break;
+            case "/ordernote/update":
+                if ($_SERVER["REQUEST_METHOD"] === "PUT") {
+                    $data = array();
+
+                    if (isset($_GET["headerid"])) {
+                        $headerid = (int)$_GET["headerid"];
+                        
+                        parse_str(file_get_contents("php://input"), $data);
+
+                        $log->info("Id. de Cabecera: " . (string)$headerid);
+                        $log->info(json_encode($data));
+
+                        $response = Ordernote::update($headerid, $data);
+
+                        if (is_array($response)) {
+                            echo json_encode($response, JSON_ERROR_NONE | JSON_ERROR_UTF8);
+                        }
+                    }
+                }
                 break;
         }
 

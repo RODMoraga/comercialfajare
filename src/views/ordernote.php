@@ -182,7 +182,7 @@ if (!isset($_SESSION["access"][0])) {
                                         <div class="row">
                                             <div class="form-group col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                 <div style="border-bottom: 2px solid green; padding: 0.175rem; overflow-y: scroll; height: 30rem;">
-                                                    <table class="table table-bordered" id="details">
+                                                    <table class="table table-bordered table-hover" id="details">
                                                         <thead class="bg-green-gradient">
                                                             <tr>
                                                                 <th>ACCIONES</th>
@@ -216,7 +216,7 @@ if (!isset($_SESSION["access"][0])) {
                                          <div class="row">
                                              <div class="form-group col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                  <button class="btn btn-primary" type="submit" id="btnsave"><i class="fa fa-save"></i> Guardar</button>
-                                                 <button class="btn btn-danger" type="button" id="btncancel"><i class="fa fa-arrow-circle-left"></i> Cancelar</button>
+                                                 <button class="btn btn-default" type="button" id="btncancel"><i class="fa fa-arrow-circle-left"></i> Cancelar</button>
                                              </div>
                                          </div>
                                     </form>

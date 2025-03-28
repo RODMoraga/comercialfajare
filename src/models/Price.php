@@ -22,7 +22,7 @@ class Price {
             $connect = Database::connect();
             $statement = $connect->prepare(
                 "DELETE FROM `detailprice`
-                 WHERE `detailpriceid`=? AND `headerpriceid`=? AND `productid`=?;"
+                WHERE `detailpriceid`=? AND `headerpriceid`=? AND `productid`=?;"
             );
             $statement->bindParam(1, $dprice, PDO::PARAM_INT);
             $statement->bindParam(2, $hprice, PDO::PARAM_INT);
@@ -240,7 +240,7 @@ class Price {
     public static function findLocationCustomer(int $id): array {
 
         try {
-            $query = "SELECT CONCAT(T1.`street`, ', ', T2.`communename`) AS 'street'
+            $query = "SELECT UCASE(CONCAT(T1.`street`, ', ', T2.`communename`)) AS 'street'
                     , T1.`phone1`
                 FROM `customers` T1
                 INNER JOIN `communes` T2 ON T1.`communeid`=T2.`communeid`

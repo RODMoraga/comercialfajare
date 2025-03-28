@@ -17,20 +17,73 @@ use PDOException;
  * 
  * @package Ordernote
  * @author Rodrio Antonio Moraga
+ * @see deleteBy()
  * @see findAll()
  * @see findAllCustomer()
  * @see findOneCustomer()
  * @see findOneDocument()
- * @see getListPrice
  * @see getListPrice()
  * @see lastDocument()
  * @see save()
  * @see update()
  * @see printFPDF()
+ * @see statusDocument()
  * @copyright 2025-03-13
  * @version 1.0.1
  */
 class Ordernote {
+
+    /**
+     * Cambia el estado del documento nulo o vigente
+     * 
+     * @author Rodrigo Moraga Garrido
+     * @see deleteBy
+     * @copyright 2025-03-25
+     * @return array
+     */
+    public static function deleteBy(int $headerid, array $detailid, array $params): array {
+        $log = new Logger("log_models");
+        $log->pushHandler(new StreamHandler("src/logs/log_model.log"), Level::Info);
+        $log->info("Clase Ordernote() - Método deleteBy()");
+
+        try {
+            $detail_id = "";
+            $product_id = "";
+
+            foreach ($detailid as $k) {
+                $detail_id .= (strlen($detail_id) ? ",": "") . $k;
+            }
+
+            foreach ($params as $k) {
+                $product_id .= (strlen($product_id) ? ",": "") . $k;
+            }
+
+            $query = "DELETE FROM `detaildocument` WHERE `headerdocumentid`=? AND `detaildocumentid` IN($detail_id) AND `productid` IN($product_id);";
+
+            $log->info("Script SQL: {$query}");
+
+            $connect = Database::connect();
+            $statement = $connect->prepare($query);
+            $statement->bindParam(1, $headerid, PDO::PARAM_INT);
+            $statement->execute();
+
+            $log->info("Script SQL ejecutado: {$query}");
+            $log->info("Ha salido todo bien detro del método...");
+
+            return [
+                "message" => "Se ha eliminado el item o items del documento.",
+                "title" => "Eliminando Producto",
+                "status" => "success"
+            ];
+
+        } catch (PDOException $e) {
+            return [
+                "message" => $e->getMessage(),
+                "title" => "Error Metodo deleteBy()",
+                "status" => "error"
+            ];
+        }
+    }
 
     /**
      * Este método carga los documentos para la lista de nota de pedidos
@@ -74,11 +127,16 @@ class Ordernote {
 
             foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $key) {
                 switch ((int)$key["statu"]) {
-                    case 0: case 1:
+                    case 0:
+                        $button  = "<button type=\"button\" class=\"btn btn-warning\" disabled><i class=\"fa fa-edit\"></i></button>&nbsp;";
+                        $button .= "<button type=\"button\" class=\"btn btn-info button-annular\" data-toggle=\"tooltip\" title=\"Anular Documento\" data-placement=\"bottom\" data-toggle-annular-document=\"{$key["headerdocumentid"]}\"><i class=\"fa fa-warning\"></i></button>&nbsp;";
+                        $button .= "<button type=\"button\" class=\"btn btn-primary\" disabled><i class=\"fa fa-print\"></i></button>";
+
+                        break;
+                    case 1:
                         $button  = "<button type=\"button\" class=\"btn btn-warning button-edit\" data-toggle=\"tooltip\" title=\"Editar Documento\" data-placement=\"bottom\" data-toggle-edit-document=\"{$key["headerdocumentid"]}\"><i class=\"fa fa-edit\"></i></button>&nbsp;";
                         $button .= "<button type=\"button\" class=\"btn btn-info button-annular\" data-toggle=\"tooltip\" title=\"Anular Documento\" data-placement=\"bottom\" data-toggle-annular-document=\"{$key["headerdocumentid"]}\"><i class=\"fa fa-warning\"></i></button>&nbsp;";
                         $button .= "<button type=\"button\" class=\"btn btn-primary button-printer\" data-toggle=\"tooltip\" title=\"Imprimir Documento\" data-placement=\"bottom\" data-toggle-print-document=\"{$key["headerdocumentid"]}\"><i class=\"fa fa-print\"></i></button>";
-
                         break;
                     case 9:
                         $button  = "<button type=\"button\" class=\"btn btn-warning\" disabled><i class=\"fa fa-edit\"></i></button>&nbsp;";
@@ -234,6 +292,101 @@ class Ordernote {
     }
 
     /**
+     * Busca un documento indicado
+     * 
+     * @author Rodrigo Moraga Garrido
+     * @see findOneDocument
+     * @copyright 2025-03-25
+     * @param int $id El Id. del documento
+     * @return array
+     */
+    public static function findOneDocument(int $id): array {
+        $log = new Logger("log_models");
+        $log->pushHandler(new StreamHandler("src/logs/log_model.log"), Level::Info);
+        $log->info("Clase Ordernote() - Método findOneDocument()");
+
+        try {
+            $query = "SELECT  T1.`headerdocumentid`
+                , T1.`type`
+                , T1.`folio`
+                , T1.`deliverdate`
+                , T1.`dateorder`
+                , T1.`customerid`
+                , IFNULL(T3.`customername`, '') AS 'customername'
+                , UCASE(CONCAT(T3.`street`, ', ', T4.`communename`)) AS 'street'
+                , IFNULL(T3.`email`, '') AS 'email'
+                , IFNULL(T3.`phone1`, '') AS 'phone1'
+                , IFNULL(T3.`phone2`, '') AS 'phone2'
+                , CASE WHEN T3.`typefolio` = 0 THEN '0 - Sin Facura' ELSE '1 - Con Factura' END AS 'typefolio'
+                , IFNULL(T1.`gloss`, '') AS 'gloss'
+                , T1.`net`
+                , T1.`tax`
+                , T1.`total`
+                , T2.`productid`
+                , T5.`productcode`
+                , T5.`productname`
+                , T2.`quantity`
+                , T2.`price`
+                , T2.`discount1`
+                , ROUND(T2.`quantity`*T2.`price`*(1 - (T2.`discount1` / 100)),0) AS 'subtotal'
+                , T2.`detaildocumentid`
+            FROM `headerdocument` T1
+            INNER JOIN `detaildocument` T2 ON T1.`headerdocumentid`=T2.`headerdocumentid`
+            INNER JOIN `customers`      T3 ON T1.`customerid`=T3.`customerid`
+            INNER JOIN `communes`       T4 ON T3.`communeid`=T4.`communeid`
+            INNER JOIN `products`       T5 ON T2.`productid`=T5.`productid`
+            WHERE T1.`headerdocumentid`=?
+            ;";
+
+            $log->info("Script SQL: Se va a ejecutar");
+
+            $connect = Database::connect();
+            $statement = $connect->prepare($query);
+            $statement->bindParam(1, $id, PDO::PARAM_INT);
+            $statement->execute();
+            $data = array();
+
+            foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $key) {
+                $data[] = array(
+                    "0" => $key["headerdocumentid"],
+                    "1" => $key["type"],
+                    "2" => $key["folio"],
+                    "3" => $key["deliverdate"],
+                    "4" => $key["dateorder"],
+                    "5" => $key["customerid"],
+                    "6" => $key["customername"],
+                    "7" => $key["street"],
+                    "8" => $key["email"],
+                    "9" => $key["phone1"],
+                    "10" => $key["phone2"],
+                    "11" => $key["typefolio"],
+                    "12" => $key["gloss"],
+                    "13" => $key["net"],
+                    "14" => $key["tax"],
+                    "15" => $key["total"],
+                    "16" => $key["productid"],
+                    "17" => $key["productcode"],
+                    "18" => $key["productname"],
+                    "19" => $key["quantity"],
+                    "20" => $key["price"],
+                    "21" => $key["discount1"],
+                    "22" => $key["subtotal"],
+                    "23" => $key["detaildocumentid"]
+                );
+            }
+
+            return $data;
+
+        } catch (PDOException $e) {
+            return [
+                "message" => $e->getMessage(),
+                "title" => "Error Metodo findOneCustomer()",
+                "status" => "error"
+            ];
+        }
+    }
+
+    /**
      * Busca el último documento ingresado en la tabla documentos.
      * 
      * @author Rodrigo Moraga Garrido
@@ -342,6 +495,97 @@ class Ordernote {
             return [
                 "message" => $e->getMessage(),
                 "title" => "Error Metodo getListPrice()",
+                "status" => "error"
+            ];
+        }
+    }
+
+    /**
+     * Actualizar el documento
+     * 
+     * @author Rodrigo Moraga Garrido
+     * @see update
+     * @copyright 2025-03-26
+     * @return array
+     */
+    public static function update(int $headerid, array $data): array {
+        $log = new Logger("log_models");
+        $log->pushHandler(new StreamHandler("src/logs/log_model.log"), Level::Info);
+        $log->info("Clase Ordernote() - Método update()");
+
+        try {
+            $query = "UPDATE `headerdocument` SET `deliverdate`='{$data["deliverdate"]}', `dateorder`='{$data["dateorder"]}', `customerid`={$data["establishment"]}, `userid`={$_SESSION["access"][3]}, `net`={$data["net"]}, `tax`={$data["tax"]}, `discount`=0, `total`={$data["total"]}, `gloss`='{$data["gloss"]}', `applytotal`={$data["applytotal"]} WHERE `headerdocumentid`={$headerid};";
+
+            // $log->info("Script SQL: " . preg_replace('/\s+/', ' ', trim($query)));
+            $log->info($query);
+
+            $connect = Database::connect();
+            $statement = $connect->prepare($query);
+            $statement->execute();
+
+            $log->info("Script SQL: Cabecera Documento Actualizado...");
+
+            $prices = array();
+            $details = array();
+            $products = array();
+            $discounts = array();
+            $quantities = array();
+
+            foreach ($data as $key => $value) {
+                switch ($key) {
+                    case "itemdetail5":     // Id. del producto
+                        $products = $value;
+                        break;
+                    case "itemdetail1":     // Cantidad pedida
+                        $quantities = $value;
+                        break;
+                    case "itemdetail2":     // Precio
+                        $prices = $value;
+                        break;
+                    case "itemdetail3":     // Descuento 1
+                        $discounts = $value;
+                        break;
+                    case "itemdetail4":
+                        $details = $value;  // Id. del detalle
+                        break;
+                }
+            }
+
+            $i = 0;
+
+            while ($i < count($products)) {
+                $log->info("Id. Cabecera: {$headerid}, Id. Detalle: {$details[$i]}, Cantidad: {$quantities[$i]}, Price: {$prices[$i]}, Descuento: {$discounts[$i]}");
+
+                if (intval($details[$i]) !== 0) {
+                    $query = "UPDATE `detaildocument` SET `quantity`={$quantities[$i]}, `price`={$prices[$i]}, `discount1`={$discounts[$i]} WHERE `headerdocumentid`={$headerid} AND `detaildocumentid`={$details[$i]} AND `productid`={$products[$i]};";
+                } else {
+                    $query = "INSERT INTO `detaildocument` VALUES(NULL, {$headerid}, {$products[$i]}, {$quantities[$i]}, {$prices[$i]}, {$discounts[$i]}, 0, 0, 0);";
+                }
+
+                $log->info($query);
+
+                $statement = $connect->prepare($query);
+                $statement->execute();
+
+                $log->info("Script SQL: Actualizando {$i}");
+
+                $i++;
+            }
+
+            $log->info("Ha salido todo bien detro del método...");
+
+            return [
+                "message" => "Los datos se han actualizado exitosamente.",
+                "title" => "Actualizando",
+                "status" => "success"
+            ];
+
+        } catch (PDOException $e) {
+            $log->info($e->getMessage());
+            
+            return [
+                "message" => $e->getMessage(),
+                "title" => "Actualizando",
                 "status" => "error"
             ];
         }
@@ -688,6 +932,59 @@ class Ordernote {
                 "message" => $e->getMessage(),
                 "title" => $e->getCode(),
                 "status" => "Error"
+            ];
+        }
+    }
+
+    /**
+     * Cambia el estado del documento nulo o vigente
+     * 
+     * @author Rodrigo Moraga Garrido
+     * @see statusDocument
+     * @copyright 2025-03-13
+     * @return array
+     */
+    public static function statusDocument(int $headerid): array {
+        $log = new Logger("log_models");
+        $log->pushHandler(new StreamHandler("src/logs/log_model.log"), Level::Info);
+        $log->info("Clase Ordernote() - Método statusDocument()");
+
+        try {
+            $query = "SELECT `statu` FROM `headerdocument` WHERE `headerdocumentid`=?;";
+
+            $log->info("Script SQL: {$query}");
+
+            $connect = Database::connect();
+            $statement = $connect->prepare($query);
+            $statement->bindParam(1, $headerid, PDO::PARAM_INT);
+            $statement->execute();
+
+            $log->info("Script SQL ejecutado: {$query}");
+
+            $status = (int)$statement->fetchColumn(0);
+            $status = ($status === 1 ? 0: 1);
+
+            $query = "UPDATE `headerdocument` SET `statu`=? WHERE `headerdocumentid`=?;";
+
+            $statement = $connect->prepare($query);
+            $statement->bindParam(1, $status, PDO::PARAM_INT);
+            $statement->bindParam(2, $headerid, PDO::PARAM_INT);
+            $statement->execute();
+
+            $log->info("Script SQL: {$query}");
+            $log->info("Ha salido todo bien detro del método...");
+
+            return [
+                "message" => "El estado del documento se actualizó satisfactoriamente.",
+                "title" => "Actualizando Estado Documento",
+                "status" => "success"
+            ];
+
+        } catch (PDOException $e) {
+            return [
+                "message" => $e->getMessage(),
+                "title" => "Error Metodo statusDocument()",
+                "status" => "error"
             ];
         }
     }

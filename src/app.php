@@ -3,6 +3,7 @@
 use App\Fajare\controllers\CustomerController;
 use App\Fajare\controllers\LoginController;
 use App\Fajare\controllers\OrdernoteController;
+use App\Fajare\controllers\PaymentController;
 use App\Fajare\controllers\PriceController;
 use App\Fajare\controllers\ProductController;
 
@@ -32,7 +33,13 @@ switch ($_SERVER["PATH_INFO"]) {
         echo "<pre>";
         //var_dump($_SESSION);
         //["950","580","830","830"]
-        var_dump(["950","580","830","830"]);
+        //var_dump(["950","580","830","830"]);
+        $query = "SELECT A
+        , B
+        , C
+        WHERE C=1
+        ";
+        var_dump(str_replace(" ,", ",", preg_replace('/\s+/', ' ', trim($query))));
         echo "</pre>";
         break;
     case "/customer/findall":
@@ -182,6 +189,64 @@ switch ($_SERVER["PATH_INFO"]) {
             OrdernoteController::process();
         }
         break;
+    case "/ordernote/status":
+        if (isset($_SESSION["access"][0])) {
+            OrdernoteController::process();
+        }
+        break;
+    case "/ordernote/findonedocument":
+        if (isset($_SESSION["access"][0])) {
+            OrdernoteController::process();
+        }
+        break;
+    case "/ordernote/delete/item":
+        if (isset($_SESSION["access"][0])) {
+            OrdernoteController::process();
+        }
+        break;
+    case "/ordernote/update":
+        if (isset($_SESSION["access"][0])) {
+            OrdernoteController::process();
+        }
+        break;
+    case "/pagos":
+        include "src/views/payment.php";
+        break;
+    case "/payment/findall":
+        if (isset($_SESSION["access"][0])) {
+            PaymentController::process();
+        }
+        break;
+    case "/payment/findallcustomer":
+        if (isset($_SESSION["access"][0])) {
+            PaymentController::process();
+        }
+        break;
+    case "/payment/findallbank":
+        if (isset($_SESSION["access"][0])) {
+            PaymentController::process();
+        }
+        break;
+    case "/payment/findone":
+        if (isset($_SESSION["access"][0])) {
+            PaymentController::process();
+        }
+        break;
+    case "/payment/save":
+        if (isset($_SESSION["access"][0])) {
+            PaymentController::process();
+        }
+        break;
+    case "/payment/transaction":
+        if (isset($_SESSION["access"][0])) {
+            PaymentController::process();
+        }
+        break;
+    case "/payment/annulartransaction":
+        if (isset($_SESSION["access"][0])) {
+            PaymentController::process();
+        }
+        break;    
     default:
         include "src/views/404.php";
         break;
