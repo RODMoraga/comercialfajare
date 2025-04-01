@@ -107,7 +107,7 @@
                         }
                         ?>
                         <?php 
-                        if ($_SESSION['access'][2] == "Administrador" || $_SESSION['access'][2] == "Super Usuario") {
+                        if ($_SESSION["access"][2] == "Administrador" || $_SESSION["access"][2] == "Super Usuario") {
                             echo '<li id="mConsultaV" class="treeview">
                                     <a href="#">
                                         <i class="fa fa-bar-chart"></i> <span>Consulta Ventas</span>

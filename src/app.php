@@ -6,11 +6,12 @@ use App\Fajare\controllers\OrdernoteController;
 use App\Fajare\controllers\PaymentController;
 use App\Fajare\controllers\PriceController;
 use App\Fajare\controllers\ProductController;
+use App\Fajare\controllers\ReportController;
 
 if (session_status() === PHP_SESSION_NONE)
     session_start();
 
-switch ($_SERVER["PATH_INFO"]) {
+    switch ($_SERVER["PATH_INFO"]) {
     case "": case "/":
         include "src/views/login.php";
         break;
@@ -246,7 +247,53 @@ switch ($_SERVER["PATH_INFO"]) {
         if (isset($_SESSION["access"][0])) {
             PaymentController::process();
         }
-        break;    
+        break;
+    case "/ventasdiarias":
+        if (isset($_SESSION["access"][0])) {
+            include "src/views/dailysales.php";
+        }
+        break;
+    case "/report/dailysales":
+        if (isset($_SESSION["access"][0]))
+            ReportController::process();
+        break;
+    case "/report/findallcustomer":
+        if (isset($_SESSION["access"][0]))
+            ReportController::process();
+        break;
+    case "/report/findallproduct":
+        if (isset($_SESSION["access"][0]))
+            ReportController::process();
+        break;
+    case "/resumenproducto":
+        if (isset($_SESSION["access"][0]))
+            include "src/views/productsalessummary.php";
+        break;
+    case "/report/productsalessummary":
+        if (isset($_SESSION["access"][0]))
+            ReportController::process();
+        break;
+    case "/report/viewproduct":
+        if (isset($_SESSION["access"][0]))
+            ReportController::process();
+        break;
+    case "/docpendientes":
+        if (isset($_SESSION["access"][0]))
+            include "src/views/pendingdocument.php";
+        break;
+    case "/report/firstdateprocess":
+        if (isset($_SESSION["access"][0]))
+            ReportController::process();
+        break;
+    case "/report/pendingdocument":
+        if (isset($_SESSION["access"][0]))
+            ReportController::process();
+        break;
+    case "/report/totalpendingdocument":
+        if (isset($_SESSION["access"][0])) {
+            ReportController::process();
+        }
+        break;
     default:
         include "src/views/404.php";
         break;

@@ -1,1 +1,3 @@
-Estoy el package models
+PATH_INFO   : /report/productsalessummary
+QUERY_STRING: datestart=2025-03-01&dateend=2025-03-31&_=1743429007417
+ACCESOS     : RAMORAGA
