@@ -23,9 +23,151 @@ use PDOException;
  * @see firstDateProcess
  * @see pendingDocument
  * @see totalPendingDocument
+ * @see canceled
+ * @see canceledTotals
  * @version 1.0.1
  */
 class Report {
+
+    /**
+     * Busca todos los los documentos cancelados
+     * 
+     * @author Rodrigo Moraga Garrido
+     * @copyright 2025-04-10
+     * @param array $customers Lista de id's de clientes
+     * @param string $datestart Fecha inicio proceso
+     * @param string $dateend Fecha termino proceso
+     * @return array
+     */
+    public static function canceled(array $customers, string $datestart, string $dateend): array {
+        $logger = new Logger("log_model_reports");
+        $logger->pushHandler(new StreamHandler("src/logs/m_reports.log", Level::Info));
+
+        try {
+            $arguments = "";
+
+            if (count($customers) && strlen($customers[0])) {
+                $list = "";
+
+                foreach ($customers as $key) {
+                    $list .= (!strlen($list) ? $key: ", {$key}");
+                }
+
+                $arguments = "T1.`customerid` IN({$list}) AND ";
+            }
+
+            $query = "SELECT 'CREDITO'
+                , T1.`folio`
+                , T1.`deliverdate`
+                , T3.`paymentdate`
+                , T3.`order`
+                , DATEDIFF(T3.`paymentdate`, T1.`deliverdate`) AS 'days'
+                , T2.`complex`
+                , IF(T1.`total`>0,T1.`total`,T1.`net`) AS 'total'
+                , 'CANCELADO' AS 'statu'
+            FROM `headerdocument` T1
+            INNER JOIN `customers` T2 USING(`customerid`)
+            INNER JOIN (SELECT `headerdocumentid`, MAX(`paymentid`) AS 'order', MAX(`paymentdate`) AS 'paymentdate', SUM(`amount`) AS 'amount' FROM `payments` GROUP BY `headerdocumentid`) AS T3 USING(`headerdocumentid`)
+            WHERE {$arguments} T1.`deliverdate` BETWEEN '{$datestart}' AND '{$dateend}' AND T1.`statu`=9
+            ;";
+
+            $logger->info("Script SQL: " . str_replace(" ,", ", ", preg_replace("/\s+/", " ", $query)));
+
+            $connect = Database::connect();
+            $statement = $connect->prepare($query);
+            $statement->execute();
+
+            $data = array();
+
+            foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $key) {
+                $data[] = array(
+                    "0" => "CREDITO",
+                    "1" => $key["folio"],
+                    "2" => $key["deliverdate"],
+                    "3" => $key["paymentdate"],
+                    "4" => $key["order"],
+                    "5" => $key["days"],
+                    "6" => $key["complex"],
+                    "7" => $key["total"],
+                    "8" => "<span class=\"label bg-blue-gradient\">{$key["statu"]}</span>"
+                );
+            }
+
+            $results = array(
+                "sEcho" => 1,                           //Información para el datatables
+                "iTotalRecords" => count($data),        //enviamos el total registros al datatable
+                "iTotalDisplayRecords" => count($data), //enviamos el total registros a visualizar
+                "aaData" => $data
+            );
+
+            return $results;
+
+        } catch (PDOException $e) {
+            return [
+                "message" => $e->getMessage(),
+                "title" => $e->getCode(),
+                "status" => "error"
+            ];
+        }
+    }
+
+    /**
+     * Busca todos los los documentos cancelados totales
+     * 
+     * @author Rodrigo Moraga Garrido
+     * @copyright 2025-04-11
+     * @param array $customers Lista de id's de clientes
+     * @param string $datestart Fecha inicio proceso
+     * @param string $dateend Fecha termino proceso
+     * @return array
+     */
+    public static function canceledTotals(array $customers, string $datestart, string $dateend): array {
+        $logger = new Logger("log_model_reports");
+        $logger->pushHandler(new StreamHandler("src/logs/m_reports.log", Level::Info));
+
+        try {
+            $arguments = "";
+
+            if (count($customers) && strlen($customers[0])) {
+                $list = "";
+
+                foreach ($customers as $key) {
+                    $list .= (!strlen($list) ? $key: ", {$key}");
+                }
+
+                $arguments = "`customerid` IN({$list}) AND ";
+            }
+
+            $query = "SELECT SUM(IF(`total` > 0, `total`, `net`)) AS 'total'
+                , COUNT(*) AS 'quantity'
+                , COUNT(DISTINCT `customerid`) AS 'customers'
+            FROM `headerdocument`
+            WHERE {$arguments} `deliverdate` BETWEEN '{$datestart}' AND '{$dateend}' AND `statu`=9
+            ;";
+
+            $logger->info("Script SQL: " . str_replace(" ,", ", ", preg_replace("/\s+/", " ", $query)));
+            
+            $connect = Database::connect();
+            $statement = $connect->prepare($query);
+            $statement->execute();
+            $rows = $statement->fetch(PDO::FETCH_ASSOC);
+
+            $data = array(
+                "total" => $rows["total"],
+                "items" => $rows["quantity"],
+                "customers" => $rows["customers"]
+            );
+
+            return $data;
+
+        } catch (PDOException $e) {
+            return [
+                "message" => $e->getMessage(),
+                "title" => $e->getCode(),
+                "status" => "error"
+            ];
+        }
+    }
 
     /**
      * Metodo para obtener las ventas diarias a la fecha

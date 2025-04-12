@@ -12,7 +12,7 @@ if (!isset($_SESSION["access"][0])) {
     header("Location: /");
 } else {
     if ($_SESSION["access"][2] === "Administrador") {
-        $datestart = date("Y-m-01");
+        $datestart = date("Y-m-d", strtotime("-12 months"));
         $dateend   = date("Y-m-t");
 ?>
 <!DOCTYPE html>
@@ -58,7 +58,7 @@ if (!isset($_SESSION["access"][0])) {
                                 </div>
                                 <div class="panel-body table-responsive" id="listordernotes">
                                     <table id="tbllistpayment" class="table table-striped table-bordered table-condensed table-hover" style="width:100%">
-                                        <thead class="bg-gray-light">
+                                        <thead class="bg-green-gradient">
                                             <tr>
                                                 <th>ACCIONES</th>
                                                 <th>TIPO DOCUMENTO</th>

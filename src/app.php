@@ -294,6 +294,18 @@ if (session_status() === PHP_SESSION_NONE)
             ReportController::process();
         }
         break;
+    case "/doccancelados":
+        if (isset($_SESSION["access"][0]))
+            include "src/views/canceled.php";
+        break;
+    case "/report/canceled":
+        if (isset($_SESSION["access"][0]))
+            ReportController::process();
+        break;
+    case "/report/canceledtotal":
+        if (isset($_SESSION["access"][0]))
+            ReportController::process();
+        break;
     default:
         include "src/views/404.php";
         break;

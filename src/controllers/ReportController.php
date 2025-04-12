@@ -128,6 +128,44 @@ class ReportController {
                     }
                 }
                 break;
+            case "/report/canceled":
+                $logger->info("Entrando a la URL: /report/canceled");
+
+                if ($_SERVER["REQUEST_METHOD"] === "GET") {
+                    if (isset($_GET["customers"]) && isset($_GET["datestart"]) && isset($_GET["dateend"])) {
+                        $customers = $_GET["customers"];
+                        $datestart = $_GET["datestart"];
+                        $dateend   = $_GET["dateend"];
+
+                        if (!is_array($customers))
+                            $customers = explode(",", $customers);
+
+                        $response = Report::canceled($customers, $datestart, $dateend);
+
+                        if (is_array($response))
+                            echo json_encode($response, JSON_ERROR_NONE | JSON_ERROR_UTF8);
+                    }
+                }
+                break;
+            case "/report/canceledtotal":
+                $logger->info("Entrando a la URL: /report/canceledtotal");
+
+                if ($_SERVER["REQUEST_METHOD"] === "GET") {
+                    if (isset($_GET["customers"]) && isset($_GET["datestart"]) && isset($_GET["dateend"])) {
+                        $customers = $_GET["customers"];
+                        $datestart = $_GET["datestart"];
+                        $dateend   = $_GET["dateend"];
+
+                        if (!is_array($customers))
+                            $customers = explode(",", $customers);
+
+                        $response = Report::canceledTotals($customers, $datestart, $dateend);
+
+                        if (is_array($response))
+                            echo json_encode($response, JSON_ERROR_NONE | JSON_ERROR_UTF8);
+                    }
+                }
+                break;
         }
 
     }

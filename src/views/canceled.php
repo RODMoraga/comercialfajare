@@ -34,7 +34,7 @@ if (!isset($_SESSION["access"][0])) {
                         <div class="col-md-12">
                             <div class="box">
                                 <div class="box-header white-border">
-                                    <h1 class="box-title text-capitalize text-maroon" style="font-size: 3rem; text-shadow: 1px 1px 2px black;">documentos pendientes</h1>
+                                    <h1 class="box-title text-capitalize text-maroon" style="font-size: 3rem; text-shadow: 1px 1px 2px black;">documentos cancelados</h1>
                                     <div class="box-tools pull-right"></div>
                                 </div><!-- /.box -->
                                 <div class="panel-body">
@@ -58,46 +58,36 @@ if (!isset($_SESSION["access"][0])) {
                                 </div>
                                 <div class="box-body">
                                     <div class="row">
-                                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                             <div class="box">
                                                 <div class="small-box bg-aqua-gradient">
                                                     <div class="inner">
                                                         <h4 class="text-center text-bold" id="total">0</h4>
                                                     </div>
-                                                    <p class="small-box-footer">Total Documentos</p>
+                                                    <p class="small-box-footer">Suma Total</p>
                                                 </div>
                                             </div>
                                         </div><!-- /.col -->
-                                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                             <div class="box">
                                                 <div class="small-box  bg-blue-gradient">
                                                     <div class="inner">
-                                                        <h4 class="text-center text-bold" id="payment">0</h4>
-                                                    </div>
-                                                    <div class="small-box-footer">Pago Parcial</div>
-                                                </div>
-                                            </div>
-                                        </div><!-- /.col -->
-                                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                                            <div class="box">
-                                                <div class="small-box bg-green-gradient">
-                                                    <div class="inner">
-                                                        <h4 class="text-center text-bold" id="balance">0</h4>
-                                                    </div>
-                                                    <div class="small-box-footer">Saldo Pendiente</div>
-                                                </div>
-                                            </div>
-                                        </div><!-- /.col -->
-                                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                                            <div class="box">
-                                                <div class="small-box bg-fuchsia-active">
-                                                    <div class="inner">
                                                         <h4 class="text-center text-bold" id="quantity">0</h4>
                                                     </div>
-                                                    <div class="small-box-footer">Cantidad Documento Pendientes</div>
+                                                    <div class="small-box-footer">Número Transacciones</div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div><!-- /.col -->
+                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                            <div class="box">
+                                                <div class="small-box  bg-green-gradient">
+                                                    <div class="inner">
+                                                        <h4 class="text-center text-bold" id="customers">0</h4>
+                                                    </div>
+                                                    <div class="small-box-footer">Transacciones x Clientes</div>
+                                                </div>
+                                            </div>
+                                        </div><!-- /.col -->
                                     </div>
                                 </div>
                             </div>
@@ -107,21 +97,21 @@ if (!isset($_SESSION["access"][0])) {
                         <div class="col-md-12">
                             <div class="box box-primary">
                                 <div class="box-header">
-                                    <div class="box-title">Documentos Pendientes</div>
+                                    <div class="box-title">Documentos Cancelados</div>
                                 </div>
                                 <div class="panel-body">
                                     <div class="table-responsive">
-                                        <table class="table table-bordered table-hover" id="tblpendingdocument" style="width: 100%;">
+                                        <table class="table table-bordered table-hover" id="tblcanceled" style="width: 100%;">
                                             <thead class="bg-green-gradient">
                                                 <tr>
                                                     <th>TIPO DOCUMENTO</th>
                                                     <th>NRO DOCUMENTO</th>
                                                     <th>FECHA DOCUMENTO</th>
-                                                    <th>DIAS EMISION</th>
+                                                    <th>FECHA PAGO</th>
+                                                    <th>ORDEN DE PAGO</th>
+                                                    <th>DIAS CORRIDOS</th>
                                                     <th>ESTABLECIMIENTOS</th>
                                                     <th>TOTAL</th>
-                                                    <th>MONTO PAGADO</th>
-                                                    <th>POR PAGAR</th>
                                                     <th>STATUS</th>
                                                 </tr>
                                             </thead>
@@ -158,7 +148,7 @@ if (!isset($_SESSION["access"][0])) {
         <!-- Toastr -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js" integrity="sha512-VEd+nq25CkR676O+pLBnDW09R7VQX9Mdiij052gVCp5yVH3jGtH70Ho/UUv4mJDsEdTvqRCFZg0NKGiojGnUCw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <!-- SCRIPT CUSTOM -->
-        <script src="src/ajax/pendingdocument.js"></script>
+        <script src="src/ajax/canceled.js"></script>
     </body>
 </html>
 <?php
