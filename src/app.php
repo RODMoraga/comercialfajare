@@ -7,6 +7,8 @@ use App\Fajare\controllers\PaymentController;
 use App\Fajare\controllers\PriceController;
 use App\Fajare\controllers\ProductController;
 use App\Fajare\controllers\ReportController;
+use App\Fajare\controllers\UsernameController;
+use App\Fajare\models\Username;
 
 if (session_status() === PHP_SESSION_NONE)
     session_start();
@@ -305,6 +307,38 @@ if (session_status() === PHP_SESSION_NONE)
     case "/report/canceledtotal":
         if (isset($_SESSION["access"][0]))
             ReportController::process();
+        break;
+    case "/usuarios":
+        if (isset($_SESSION["access"][0]))
+            include "src/views/username.php";
+        break;
+    case "/username/findall":
+        if (isset($_SESSION["access"][0]))
+            UsernameController::process();
+        break;
+    case "/username/save":
+        if (isset($_SESSION["access"][0]))
+            UsernameController::process();
+        break;
+    case "/username/findallprofile":
+        if (isset($_SESSION["access"][0]))
+            UsernameController::process();
+        break;
+    case "/username/delete":
+        if (isset($_SESSION["access"][0]))
+            UsernameController::process();
+        break;
+    case "/username/status":
+        if (isset($_SESSION["access"][0]))
+            UsernameController::process();
+        break;
+    case "/username/findone":
+        if (isset($_SESSION["access"][0]))
+            UsernameController::process();
+        break;
+    case "/username/update":
+        if (isset($_SESSION["access"][0]))
+            UsernameController::process();
         break;
     default:
         include "src/views/404.php";
