@@ -8,7 +8,6 @@ use App\Fajare\controllers\PriceController;
 use App\Fajare\controllers\ProductController;
 use App\Fajare\controllers\ReportController;
 use App\Fajare\controllers\UsernameController;
-use App\Fajare\models\Username;
 
 if (session_status() === PHP_SESSION_NONE)
     session_start();
