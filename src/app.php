@@ -1,6 +1,7 @@
 <?php
 
 use App\Fajare\controllers\BankController;
+use App\Fajare\controllers\CategoryController;
 use App\Fajare\controllers\CustomerController;
 use App\Fajare\controllers\LoginController;
 use App\Fajare\controllers\OrdernoteController;
@@ -389,7 +390,30 @@ if (session_status() === PHP_SESSION_NONE)
         if (isset($_SESSION["access"][0]))
             UomController::process();
         break;
-
+    case "/categorias":
+        if (isset($_SESSION["access"][0]))
+            include "src/views/category.php";
+        break;
+    case "/category/findall":
+        if (isset($_SESSION["access"][0]))
+            CategoryController::process();
+        break;
+    case "/category/save":
+        if (isset($_SESSION["access"][0]))
+            CategoryController::process();
+        break;
+    case "/category/delete":
+        if (isset($_SESSION["access"][0]))
+            CategoryController::process();
+        break;
+    case "/category/findone":
+        if (isset($_SESSION["access"][0]))
+            CategoryController::process();
+        break;
+    case "/category/update":
+        if (isset($_SESSION["access"][0]))
+            CategoryController::process();
+        break;
     default:
         include "src/views/404.php";
         break;
