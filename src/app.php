@@ -1,5 +1,6 @@
 <?php
 
+use App\Fajare\controllers\BankController;
 use App\Fajare\controllers\CustomerController;
 use App\Fajare\controllers\LoginController;
 use App\Fajare\controllers\OrdernoteController;
@@ -7,6 +8,7 @@ use App\Fajare\controllers\PaymentController;
 use App\Fajare\controllers\PriceController;
 use App\Fajare\controllers\ProductController;
 use App\Fajare\controllers\ReportController;
+use App\Fajare\controllers\UomController;
 use App\Fajare\controllers\UsernameController;
 
 if (session_status() === PHP_SESSION_NONE)
@@ -339,6 +341,55 @@ if (session_status() === PHP_SESSION_NONE)
         if (isset($_SESSION["access"][0]))
             UsernameController::process();
         break;
+    case "/bancos":
+        if (isset($_SESSION["access"][0]))
+            include "src/views/bank.php";
+        break;
+    case "/bank/findall":
+        if (isset($_SESSION["access"][0]))
+            BankController::process();
+        break;
+    case "/bank/save":
+        if (isset($_SESSION["access"][0]))
+            BankController::process();
+        break;
+    case "/bank/delete":
+        if (isset($_SESSION["access"][0]))
+            BankController::process();
+        break;
+    case "/bank/findone":
+        if (isset($_SESSION["access"][0]))
+            BankController::process();
+        break;
+    case "/bank/update":
+        if (isset($_SESSION["access"][0]))
+            BankController::process();
+        break;
+    case "/unidadmedidas":
+        if (isset($_SESSION["access"][0]))
+            include "src/views/uom.php";
+        break;
+    case "/uom/findall":
+        if (isset($_SESSION["access"][0]))
+            UomController::process();
+        break;
+    case "/uom/save":
+        if (isset($_SESSION["access"][0]))
+            UomController::process();
+        break;
+    case "/uom/delete":
+        if (isset($_SESSION["access"][0]))
+            UomController::process();
+        break;
+    case "/uom/findone":
+        if (isset($_SESSION["access"][0]))
+            UomController::process();
+        break;
+    case "/uom/update":
+        if (isset($_SESSION["access"][0]))
+            UomController::process();
+        break;
+
     default:
         include "src/views/404.php";
         break;
